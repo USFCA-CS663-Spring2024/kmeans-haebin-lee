@@ -27,7 +27,7 @@ class cluster:
 
         for _ in range(5):
             desired_size = round(len(X) / self._k)
-            eps = round(desired_size * 0.1)
+            eps = round(desired_size * 0.01)
             count = np.bincount(hypotheses, minlength=self._k)
             max_count = max(count)
             min_count = min(count)
@@ -40,8 +40,9 @@ class cluster:
             pq = []
             need_to_update = np.where(hypotheses != min_idx)[0]
             for i in need_to_update:
-                dist = self.distance(X[i], self._centroids[min_idx])
-                pq.append((dist, i))
+                if hypotheses[i] == max_idx:
+                    dist = self.distance(X[i], self._centroids[min_idx])
+                    pq.append((dist, i))
             heapq.heapify(pq)
 
             while min_count < desired_size - eps and pq:
@@ -56,7 +57,7 @@ class cluster:
         return hypotheses
 
     def fit(self, X, balanced=False):
-        # X: 2D array
+        self._centroids = random.choices(X, k=self._k)
 
         hypotheses = np.full(len(X), -1)
         for _ in range(self._max_iterations):
@@ -78,6 +79,7 @@ class cluster:
 
             if np.array_equal(prev_centroids, self._centroids):
                 break
+
         if balanced:
             hypotheses = self.balance(X, hypotheses)
         # A: A list (of length n) of the cluster hypotheses, one for each instances
